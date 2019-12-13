@@ -84,7 +84,10 @@ function getIndexJs() {
   const indexJsList = [];
   Object.keys(entries).forEach((name) => {
     const indexjs = resolveModule(resolveApp, `src/${name}/index`)
-    indexJsList.push(indexjs);
+    indexJsList.push({
+      name,
+      path: indexjs
+    });
   })
   return indexJsList;
 }
