@@ -1,68 +1,181 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# react多页面模板
 
-## Available Scripts
+## 运行
+```
+  yarn start
+```
 
-In the project directory, you can run:
+## 打包
+```
+  yarn build
+```
 
-### `yarn start`
+## 描述
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 版本
+    create-react-app 版本 3.3.0
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### webpack 配置
+ 1. 弹出 `webpack` 配置
+ ```
+ yarn eject
+ ```
+ 2. 修改 `config/paths.js` 文件
+ ```
+ const glob = require('glob');
 
-### `yarn test`
+ ...
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ // 获取指定路径下的入口文件
+function getEntries(globPath) {
+  const files = glob.sync(globPath),
+    entries = {};
+  files.forEach(function(filepath) {
+      const split = filepath.split('/');
+      const name = split[split.length - 2];
+      entries[name] = './' + filepath;
+  });
+  return entries;
+}
 
-### `yarn build`
+const entries = getEntries('src/**/index.js');
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+function getIndexJs() {
+  const indexJsList = [];
+  Object.keys(entries).forEach((name) => {
+    const indexjs = resolveModule(resolveApp, `src/${name}/index`)
+    indexJsList.push({
+      name,
+      path: indexjs
+    });
+  })
+  return indexJsList;
+}
+const indexJsList = getIndexJs()
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+...
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+// config after eject: we're in ./config/
+module.exports = {
+  dotenv: resolveApp('.env'),
+  appPath: resolveApp('.'),
+  appBuild: resolveApp('build'),
+  appPublic: resolveApp('public'),
+  appHtml: resolveApp('public/index.html'),
+  appIndexJs: indexJsList,           # +++
+  appPackageJson: resolveApp('package.json'),
+  appSrc: resolveApp('src'),
+  appTsConfig: resolveApp('tsconfig.json'),
+  appJsConfig: resolveApp('jsconfig.json'),
+  yarnLockFile: resolveApp('yarn.lock'),
+  testsSetup: resolveModule(resolveApp, 'src/setupTests'),
+  proxySetup: resolveApp('src/setupProxy.js'),
+  appNodeModules: resolveApp('node_modules'),
+  publicUrl: getPublicUrl(resolveApp('package.json')),
+  servedPath: getServedPath(resolveApp('package.json')),
+  entries                          # +++
+};
+ ```
+ 3. 修改 `config/webpack.config.js` 文件
+ ```
+ // 配置入口
+  const entry = {}
+  paths.appIndexJs.forEach(e => {
+    entry[e.name] = [
+      isEnvDevelopment &&
+        require.resolve('react-dev-utils/webpackHotDevClient'),
+      e.path
+    ].filter(Boolean)
+  });
 
-### `yarn eject`
+...
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+return {
+    entry
+}
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+...
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+filename: isEnvProduction
+? 'static/js/[name]/[name].[contenthash:8].js'
+: isEnvDevelopment && 'static/js/[name]/[name].bundle.js',
+chunkFilename: isEnvProduction
+? 'static/js/[name]/[name].[contenthash:8].chunk.js'
+: isEnvDevelopment && 'static/js/[name]/[name].chunk.js',
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+...
 
-## Learn More
+plugins: [
+// Generates an `index.html` file with the <script> injected.
+...Object.keys(paths.entries).map((name) => {
+return new HtmlWebpackPlugin(
+    Object.assign(
+    {},
+    {
+        inject: true,
+        chunks: [name],
+        template: paths.appHtml,
+        filename: name + '.html',
+    },
+    isEnvProduction
+        ? {
+            minify: {
+            removeComments: true,
+            collapseWhitespace: true,
+            removeRedundantAttributes: true,
+            useShortDoctype: true,
+            removeEmptyAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            keepClosingSlash: true,
+            minifyJS: true,
+            minifyCSS: true,
+            minifyURLs: true,
+            },
+        }
+        : undefined
+    )
+)
+}),
+....
+]
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+// 注释下面这部分
+// new ManifestPlugin({
+//   fileName: 'asset-manifest.json',
+//   publicPath: publicPath,
+//   generate: (seed, files, entrypoints) => {
+//     const manifestFiles = files.reduce((manifest, file) => {
+//       manifest[file.name] = file.path;
+//       return manifest;
+//     }, seed);
+//     const entrypointFiles = entrypoints.main.filter(
+//       fileName => !fileName.endsWith('.map')
+//     );
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+//     return {
+//       files: manifestFiles,
+//       entrypoints: entrypointFiles,
+//     };
+//   },
+// }),
+ ```
+ 4. 修改检测文件是否存在的代码 `scripts/build.js` `scripts/build.js`
+ ```
+ // Warn and crash if required files are missing
+ if (!checkRequiredFiles([paths.appHtml, ...paths.appIndexJs.map(e => e.path)])) {
+    process.exit(1);
+ }
+ ```
 
-### Code Splitting
+  ### 页面路径
+  ```
+  http://localhost:3000/page1.html
+  http://localhost:3000/page2.html
+  http://localhost:3000/page3.html
+  ```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+  ### 添加页面方法
 
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+  复制`src`下面目录，重命名，保持目录结构
+  
+ 
