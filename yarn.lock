@@ -6425,6 +6425,11 @@ minimist@0.0.8:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
   integrity sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=
 
+minimist@0.2.1:
+  version "0.2.1"
+  resolved "https://registry.npm.taobao.org/minimist/download/minimist-0.2.1.tgz#827ba4e7593464e7c221e8c5bed930904ee2c455"
+  integrity sha1-gnuk51k0ZOfCIejFvtkwkE7ixFU=
+
 minimist@^1.1.1, minimist@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
@@ -8304,9 +8309,9 @@ react-app-polyfill@^1.0.5:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
-react-dev-utils@^10.0.0:
+react-dev-utils@10.0.0:
   version "10.0.0"
-  resolved "https://registry.npm.taobao.org/react-dev-utils/download/react-dev-utils-10.0.0.tgz#bd2d16426c7e4cbfed1b46fb9e2ac98ec06fcdfa"
+  resolved "https://registry.npm.taobao.org/react-dev-utils/download/react-dev-utils-10.0.0.tgz?cache=0&sync_timestamp=1584749200481&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-dev-utils%2Fdownload%2Freact-dev-utils-10.0.0.tgz#bd2d16426c7e4cbfed1b46fb9e2ac98ec06fcdfa"
   integrity sha1-vS0WQmx+TL/tG0b7nirJjsBvzfo=
   dependencies:
     "@babel/code-frame" "7.5.5"
