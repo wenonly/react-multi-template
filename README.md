@@ -159,7 +159,7 @@ return new HtmlWebpackPlugin(
 //   },
 // }),
  ```
- 4. 修改检测文件是否存在的代码 `scripts/build.js` `scripts/build.js`
+ 4. 修改检测文件是否存在的代码 `scripts/build.js` `scripts/start.js`
  ```
  // Warn and crash if required files are missing
  if (!checkRequiredFiles([paths.appHtml, ...paths.appIndexJs.map(e => e.path)])) {
